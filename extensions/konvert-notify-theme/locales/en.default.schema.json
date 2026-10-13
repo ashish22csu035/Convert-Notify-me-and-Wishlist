@@ -1,0 +1,18 @@
+{
+  "notify_me": {
+    "name": "Notify Me",
+    "settings": {
+      "heading": "Heading",
+      "description": "Description",
+      "button_label": "Modal submit button label",
+      "accent_color": "Button color"
+    }
+  },
+  "wishlist_save": {
+    "name": "Save to Wishlist",
+    "settings": {
+      "button_label": "Button label",
+      "accent_color": "Button color"
+    }
+  }
+}

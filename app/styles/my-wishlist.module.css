@@ -1,0 +1,127 @@
+.page {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 72rem;
+  padding: clamp(1rem, 4vw, 2.5rem);
+}
+
+.heading {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  margin: 0 0 1.5rem;
+}
+
+.empty {
+  margin: 0;
+}
+
+.list {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.card {
+  align-items: start;
+  border-bottom: 1px solid #dedede;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(6rem, 10rem) minmax(0, 1fr);
+  padding: 0 0 1rem;
+}
+
+.image,
+.imagePlaceholder {
+  aspect-ratio: 1;
+  background: #f4f4f4;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.details {
+  min-width: 0;
+}
+
+.productTitle {
+  font-size: 1.125rem;
+  margin: 0 0 0.5rem;
+}
+
+.productTitle a,
+.actions a {
+  color: inherit;
+}
+
+.price,
+.variant,
+.availability {
+  margin: 0.35rem 0;
+}
+
+.availability {
+  font-weight: 600;
+}
+
+.actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.actions form {
+  margin: 0;
+}
+
+.primaryButton,
+.secondaryButton,
+.removeButton {
+  align-items: center;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 0.2rem;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.8rem;
+  text-decoration: none;
+}
+
+.primaryButton {
+  background: #1f2937;
+  border-color: #1f2937;
+  color: #fff;
+}
+
+.removeButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.error {
+  color: #b42318;
+  margin: 0.75rem 0 0;
+}
+
+@media (max-width: 38rem) {
+  .card {
+    grid-template-columns: minmax(5rem, 7rem) minmax(0, 1fr);
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions > *,
+  .actions form,
+  .actions form button {
+    width: 100%;
+  }
+}

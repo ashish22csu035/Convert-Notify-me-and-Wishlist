@@ -1,0 +1,117 @@
+.konvert-wishlist {
+  box-sizing: border-box;
+  color: inherit;
+}
+
+.konvert-wishlist[hidden] {
+  display: none !important;
+}
+
+.konvert-wishlist__trigger,
+.konvert-wishlist__continue {
+  align-items: center;
+  background: var(--konvert-wishlist-accent);
+  border: 1px solid var(--konvert-wishlist-accent);
+  border-radius: 0.25rem;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 600;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.625rem 1rem;
+}
+
+.konvert-wishlist__trigger:hover,
+.konvert-wishlist__continue:hover {
+  opacity: 0.88;
+}
+
+.konvert-wishlist__trigger:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.konvert-wishlist__trigger[data-state="unsaved"] {
+  background: transparent;
+  color: var(--konvert-wishlist-accent);
+}
+
+.konvert-wishlist__trigger[data-state="saved"] {
+  background: var(--konvert-wishlist-accent);
+  color: #fff;
+}
+
+.konvert-wishlist__page-link {
+  color: inherit;
+  display: inline-block;
+  margin-inline-start: 0.75rem;
+}
+
+.konvert-wishlist__dialog {
+  background: #fff;
+  border: 0;
+  border-radius: 0.5rem;
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 22%);
+  color: #1f2937;
+  margin: auto;
+  max-width: min(32rem, calc(100% - 2rem));
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.konvert-wishlist__dialog::backdrop {
+  background: rgb(15 23 42 / 55%);
+}
+
+.konvert-wishlist__heading {
+  font: inherit;
+  font-size: 1.375rem;
+  font-weight: 650;
+  margin: 0 0 0.5rem;
+}
+
+.konvert-wishlist__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.konvert-wishlist__cancel {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.konvert-wishlist__status {
+  margin: 0.5rem 0 0;
+  min-height: 1.25em;
+}
+
+.konvert-wishlist__status[data-state="error"] {
+  color: #b42318;
+}
+
+.konvert-wishlist__status[data-state="success"] {
+  color: #067647;
+}
+
+@media (max-width: 480px) {
+  .konvert-wishlist__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .konvert-wishlist__continue,
+  .konvert-wishlist__cancel {
+    width: 100%;
+  }
+}

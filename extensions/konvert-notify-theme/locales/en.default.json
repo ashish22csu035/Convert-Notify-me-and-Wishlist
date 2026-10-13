@@ -1,0 +1,63 @@
+{
+  "notify_me": {
+    "name": "Notify Me",
+    "settings": {
+      "heading": "Heading",
+      "description": "Description",
+      "button_label": "Modal submit button label",
+      "accent_color": "Button color"
+    },
+    "open_button": "Notify Me",
+    "close": "Close",
+    "cancel": "Cancel",
+    "product_label": "Product",
+    "variant_label": "Selected option",
+    "channel_label": "Preferred alert channel",
+    "channel_email": "Email",
+    "channel_whatsapp": "WhatsApp",
+    "coming_soon": "Coming soon",
+    "email_label": "Email address",
+    "phone_label": "WhatsApp phone number",
+    "country_code": "Country calling code",
+    "country_code_placeholder": "+ country code",
+    "phone_placeholder": "Phone number",
+    "consent_label": "I agree to receive an email when this product is back in stock.",
+    "status": {
+      "invalid_email": "Enter a valid email address.",
+      "invalid_response": "Please check your details and try again.",
+      "required_consent": "Please agree to receive an email when this item is back in stock.",
+      "invalid_variant": "Select an unavailable variant to request a notification.",
+      "loading": "Submitting your request...",
+      "submitting_variant": "Your request is still being submitted for __VARIANT__.",
+      "success": "Your request has been saved.",
+      "success_variant": "Your request has been saved for __VARIANT__.",
+      "duplicate": "You are already signed up for this variant.",
+      "duplicate_variant": "You are already signed up for __VARIANT__.",
+      "error": "We couldn't submit your request. Please try again.",
+      "network_error": "We couldn't connect. Check your connection and try again."
+    }
+  },
+  "wishlist_save": {
+    "name": "Save to Wishlist",
+    "settings": {
+      "button_label": "Button label",
+      "accent_color": "Button color"
+    },
+    "save": "Save to Wishlist",
+    "my_wishlist": "My Wishlist",
+    "loading": "Checking Wishlist...",
+    "saving": "Saving...",
+    "removing": "Removing...",
+    "saved": "Saved to Wishlist",
+    "login_heading": "Log in to save this item",
+    "login_required": "Log in to save this item",
+    "continue_login": "Continue to login",
+    "cancel": "Cancel",
+    "login_unavailable": "Customer login is not enabled for this store.",
+    "success": "This item was saved to your Wishlist.",
+    "removed": "This item was removed from your Wishlist.",
+    "failure": "We couldn't verify your login. The item was not saved.",
+    "expired": "Your pending Wishlist item expired. Please try again.",
+    "error": "We couldn't save this item. Please try again."
+  }
+}

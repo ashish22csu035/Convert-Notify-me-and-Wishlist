@@ -1,0 +1,56 @@
+.filters {
+  display: grid;
+  grid-template-columns: minmax(14rem, 2fr) minmax(12rem, 1fr) auto;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.tableScroll s-table {
+  min-width: 68rem;
+}
+
+.state,
+.pagination,
+.action {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.state,
+.emptyState {
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.pagination {
+  justify-content: center;
+  margin-block-start: 1rem;
+}
+
+.failedJobs {
+  margin-block-start: 0.5rem;
+}
+
+.failedJobs details {
+  margin-block: 0.5rem;
+}
+
+.failedJobs summary {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.action {
+  margin-block-start: 0.5rem;
+}
+
+@media (max-width: 48rem) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}

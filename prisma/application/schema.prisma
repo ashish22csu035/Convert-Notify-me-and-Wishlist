@@ -1,0 +1,290 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../app/generated/application-client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("APP_DATABASE_URL")
+}
+
+enum NotifyChannel {
+  EMAIL
+  SMS
+}
+
+enum NotifyRequestSource {
+  THEME_APP_EXTENSION
+  STOREFRONT
+  ADMIN
+  API
+  IMPORT
+}
+
+enum NotifyRequestStatus {
+  PENDING
+  ACTIVE
+  NOTIFIED
+  CLOSED
+  UNSUBSCRIBED
+}
+
+enum HandoffJobStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+}
+
+enum AnalyticsEventType {
+  NOTIFY_REQUEST_CREATED
+  NOTIFY_SENT
+  NOTIFY_CLICKED
+  WISHLIST_CLICKED
+  RESTOCK_DETECTED
+  HANDOFF_ACCEPTED
+  HANDOFF_FAILED
+  WISHLIST_ENTRY_CREATED
+  WISHLIST_ENTRY_REMOVED
+  PRODUCT_VIEWED
+  ORDER_PLACED
+}
+
+enum OrderMatchSource {
+  NOTIFY_REQUEST
+  WISHLIST_ENTRY
+}
+
+model Shop {
+  id            String   @id @default(cuid())
+  shopifyShopId String   @unique @db.VarChar(128)
+  domain        String   @unique @db.VarChar(255)
+  notifyEnabled Boolean  @default(true)
+  wishlistEnabled Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  notifyRequests        NotifyRequest[]
+  wishlistEntries       WishlistEntry[]
+  variantAvailabilities VariantAvailability[]
+  analyticsEvents       AnalyticsEvent[]
+  orderMatches          OrderMatch[]
+  paidOrderEvents       PaidOrderEvent[]
+}
+
+model NotifyRequest {
+  id                        String              @id @default(cuid())
+  shopId                    String
+  productShopifyId          String              @db.VarChar(128)
+  variantShopifyId          String              @db.VarChar(128)
+  verifiedCustomerShopifyId String?             @db.VarChar(128)
+  normalizedContact         String              @db.VarChar(320)
+  contactDeduplicationKey   String              @db.VarChar(128)
+  channel                   NotifyChannel
+  consentText               String              @db.Text
+  consentVersion            String              @db.VarChar(64)
+  consentedAt               DateTime
+  source                    NotifyRequestSource
+  status                    NotifyRequestStatus @default(PENDING)
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+  closedAt                  DateTime?
+
+  shop            Shop             @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  handoffJobs     HandoffJob[]
+  analyticsEvents AnalyticsEvent[]
+  orderMatches    OrderMatch[]
+
+  // PENDING and ACTIVE are considered open for deduplication; NOTIFIED,
+  // CLOSED, and UNSUBSCRIBED are not. The index supports lookup but cannot
+  // enforce one open request. The backend must deduplicate transactionally
+  // or with another concurrency-safe strategy. A global unique constraint
+  // would incorrectly prevent future subscriptions after closure.
+  @@index([shopId, variantShopifyId, contactDeduplicationKey, status])
+  @@index([shopId, productShopifyId, variantShopifyId])
+  @@index([shopId, verifiedCustomerShopifyId, status])
+  @@index([shopId, status, createdAt])
+}
+
+model WishlistEntry {
+  id                        String    @id @default(cuid())
+  shopId                    String
+  verifiedCustomerShopifyId String    @db.VarChar(128)
+  productShopifyId          String    @db.VarChar(128)
+  preferredVariantShopifyId String?   @db.VarChar(128)
+  savedAt                   DateTime  @default(now())
+  isActive                  Boolean   @default(true)
+  deactivatedAt             DateTime?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  shop            Shop             @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  analyticsEvents AnalyticsEvent[]
+  orderMatches    OrderMatch[]
+
+  // One row per customer/product is reactivated instead of creating duplicate
+  // entries. Re-saving an inactive entry must reactivate this row and update
+  // the current save episode rather than inserting another row.
+  @@unique([shopId, verifiedCustomerShopifyId, productShopifyId])
+  @@index([shopId, verifiedCustomerShopifyId, isActive, savedAt])
+  @@index([shopId, productShopifyId, isActive])
+}
+
+model VariantAvailability {
+  id                String   @id @default(cuid())
+  shopId            String
+  productShopifyId  String   @db.VarChar(128)
+  variantShopifyId  String   @db.VarChar(128)
+  previousAvailable Boolean?
+  latestAvailable   Boolean
+  lastCheckedAt     DateTime
+  restockCycle      Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  // A single current-state row per shop/variant makes repeated observations
+  // update the same record; increment restockCycle on an unavailable→available transition.
+  @@unique([shopId, variantShopifyId])
+  @@index([shopId, productShopifyId])
+  @@index([shopId, latestAvailable, lastCheckedAt])
+}
+
+model HandoffJob {
+  id                    String           @id @default(cuid())
+  notifyRequestId       String
+  idempotencyKey        String           @db.VarChar(191)
+  status                HandoffJobStatus @default(PENDING)
+  attempts              Int              @default(0)
+  retryAt               DateTime?
+  providerReference     String?          @db.VarChar(191)
+  sanitizedErrorCode    String?          @db.VarChar(100)
+  sanitizedErrorMessage String?          @db.VarChar(500)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  notifyRequest NotifyRequest @relation(fields: [notifyRequestId], references: [id], onDelete: Cascade)
+
+  // Key uniqueness is scoped to its request: the same key may be used by
+  // different requests without creating a cross-shop collision.
+  @@unique([notifyRequestId, idempotencyKey])
+  @@index([status, retryAt])
+  @@index([notifyRequestId, createdAt])
+}
+
+model AnalyticsEvent {
+  id                        String             @id @default(cuid())
+  shopId                    String
+  eventKey                  String             @db.VarChar(191)
+  type                      AnalyticsEventType
+  occurredAt                DateTime           @default(now())
+  productShopifyId          String?            @db.VarChar(128)
+  variantShopifyId          String?            @db.VarChar(128)
+  verifiedCustomerShopifyId String?            @db.VarChar(128)
+  emailIdentityDigest      String?            @db.VarChar(64)
+  phoneIdentityDigest      String?            @db.VarChar(64)
+  notifyRequestId           String?
+  wishlistEntryId           String?
+  orderShopifyId            String?            @db.VarChar(128)
+  sourceSurface             String?            @db.VarChar(64)
+  restockCycle              Int?
+  createdAt                 DateTime           @default(now())
+
+  shop          Shop           @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  notifyRequest NotifyRequest? @relation(fields: [notifyRequestId], references: [id], onDelete: SetNull)
+  wishlistEntry WishlistEntry? @relation(fields: [wishlistEntryId], references: [id], onDelete: SetNull)
+
+  // These foreign keys only prove each linked row exists. Backend services
+  // must also verify that each linked record belongs to this same shop.
+  // eventKey is an application-generated stable key used to make ingestion idempotent per shop.
+  @@unique([shopId, eventKey])
+  @@index([shopId, type, occurredAt])
+  @@index([shopId, productShopifyId, occurredAt])
+  @@index([shopId, verifiedCustomerShopifyId, occurredAt])
+  @@index([shopId, sourceSurface, occurredAt])
+  @@index([shopId, variantShopifyId, restockCycle])
+  @@index([shopId, orderShopifyId])
+  @@index([notifyRequestId, occurredAt])
+  @@index([wishlistEntryId, occurredAt])
+}
+
+model PaidOrderEvent {
+  id                            String    @id @default(cuid())
+  shopId                        String
+  shopifyWebhookId              String    @db.VarChar(191)
+  orderShopifyId                String    @db.VarChar(128)
+  orderCreatedAt                DateTime
+  paidAt                        DateTime?
+  verifiedCustomerShopifyId     String?   @db.VarChar(128)
+  customerEmailDeduplicationKey String?   @db.VarChar(64)
+  customerPhoneDeduplicationKey String?   @db.VarChar(64)
+  receivedAt                    DateTime  @default(now())
+  createdAt                     DateTime  @default(now())
+
+  shop  Shop            @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  lines PaidOrderLine[]
+
+  @@unique([shopId, shopifyWebhookId])
+  @@unique([shopId, orderShopifyId])
+  @@index([shopId, verifiedCustomerShopifyId, paidAt])
+  @@index([shopId, customerEmailDeduplicationKey, paidAt])
+  @@index([shopId, customerPhoneDeduplicationKey, paidAt])
+}
+
+model PaidOrderLine {
+  id                 String  @id @default(cuid())
+  paidOrderEventId   String
+  orderLineShopifyId String  @db.VarChar(128)
+  productShopifyId   String? @db.VarChar(128)
+  variantShopifyId   String? @db.VarChar(128)
+
+  paidOrderEvent PaidOrderEvent @relation(fields: [paidOrderEventId], references: [id], onDelete: Cascade)
+  orderMatches   OrderMatch[]
+
+  @@unique([paidOrderEventId, orderLineShopifyId])
+  @@index([productShopifyId])
+  @@index([variantShopifyId])
+}
+
+model OrderMatch {
+  id                 String           @id @default(cuid())
+  shopId             String
+  orderShopifyId     String           @db.VarChar(128)
+  orderLineShopifyId String?          @db.VarChar(128)
+  paidOrderLineId    String?
+  source             OrderMatchSource
+  notifyRequestId    String?
+  wishlistEntryId    String?
+  orderCreatedAt     DateTime
+  paidAt             DateTime?
+  matchedAt          DateTime         @default(now())
+  orderTotal         Decimal?         @db.Decimal(12, 2)
+  currencyCode       String?          @db.VarChar(3)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  shop          Shop           @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  paidOrderLine PaidOrderLine? @relation(fields: [paidOrderLineId], references: [id], onDelete: SetNull)
+  notifyRequest NotifyRequest? @relation(fields: [notifyRequestId], references: [id], onDelete: SetNull)
+  wishlistEntry WishlistEntry? @relation(fields: [wishlistEntryId], references: [id], onDelete: SetNull)
+
+  // Store only the Shopify order GID and attribution references, not buyer details.
+  // paidAt is the canonical purchase timestamp; matchedAt is when association
+  // was made. Notify eligibility is anchored to HANDOFF_ACCEPTED, and Wishlist
+  // eligibility is anchored to WISHLIST_ENTRY_CREATED while events determine
+  // whether the save episode was still active at purchase time.
+  // Do not treat either association as incremental revenue.
+  // These foreign keys only prove linked rows exist. Backend services must verify
+  // linked records belong to this same shop and that exactly one source relation
+  // is populated consistently with source. Prisma schema validation does not
+  // enforce this conditional rule.
+  // Deleting a shop cascades its records; deleting a request or wishlist entry
+  // cascades its handoff jobs and sets analytics/order references to null.
+  // Backend retention logic must account for those effects.
+  @@unique([shopId, orderShopifyId, orderLineShopifyId, source])
+  @@unique([paidOrderLineId, source])
+  @@index([shopId, matchedAt])
+  @@index([notifyRequestId, matchedAt])
+  @@index([wishlistEntryId, matchedAt])
+}

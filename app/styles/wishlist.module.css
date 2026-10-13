@@ -1,0 +1,19 @@
+.window {
+  margin-block: 0 1rem;
+}
+
+.summary {
+  margin-block: 0.5rem 1rem;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.tableScroll s-table {
+  min-width: 42rem;
+}
+
+.emptyState {
+  padding: 1.5rem 0;
+}

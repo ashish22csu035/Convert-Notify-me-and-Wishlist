@@ -1,0 +1,91 @@
+{%- assign wishlist_variant = product.selected_variant -%}
+<div
+  class="konvert-wishlist"
+  data-konvert-wishlist
+  hidden
+  data-endpoint="/apps/konvert-notify/wishlist"
+  data-product-id="{{ product.id }}"
+  data-variant-ids="{{ product.variants | map: 'id' | json | escape }}"
+  data-initial-variant-id="{% if wishlist_variant %}{{ wishlist_variant.id }}{% endif %}"
+  data-login-url="{{ routes.storefront_login_url | escape }}"
+  data-login-enabled="{{ shop.customer_accounts_enabled }}"
+  data-loading-label="{{ 'wishlist_save.loading' | t | escape }}"
+  data-saving-label="{{ 'wishlist_save.saving' | t | escape }}"
+  data-removing-label="{{ 'wishlist_save.removing' | t | escape }}"
+  data-saved-label="{{ 'wishlist_save.saved' | t | escape }}"
+  data-save-label="{{ 'wishlist_save.save' | t | escape }}"
+  data-required-message="{{ 'wishlist_save.login_required' | t | escape }}"
+  data-login-unavailable="{{ 'wishlist_save.login_unavailable' | t | escape }}"
+  data-success-message="{{ 'wishlist_save.success' | t | escape }}"
+  data-removed-message="{{ 'wishlist_save.removed' | t | escape }}"
+  data-failure-message="{{ 'wishlist_save.failure' | t | escape }}"
+  data-expired-message="{{ 'wishlist_save.expired' | t | escape }}"
+  data-error-message="{{ 'wishlist_save.error' | t | escape }}"
+  style="--konvert-wishlist-accent: {{ block.settings.accent_color }};"
+  {{ block.shopify_attributes }}
+>
+  <button
+    class="konvert-wishlist__trigger"
+    type="button"
+    data-save
+    data-state="loading"
+    aria-pressed="false"
+    aria-busy="true"
+    disabled
+  >
+    {{ block.settings.button_label | escape }}
+  </button>
+  <a class="konvert-wishlist__page-link" href="/apps/konvert-notify/my-wishlist">
+    {{ 'wishlist_save.my_wishlist' | t }}
+  </a>
+  <p class="konvert-wishlist__status" data-status role="status" aria-live="polite"></p>
+
+  <dialog
+    class="konvert-wishlist__dialog"
+    aria-labelledby="KonvertWishlistHeading-{{ block.id }}"
+    data-dialog
+  >
+    <div class="konvert-wishlist__dialog-content">
+      <h2 class="konvert-wishlist__heading" id="KonvertWishlistHeading-{{ block.id }}">
+        {{ 'wishlist_save.login_heading' | t }}
+      </h2>
+      <p>{{ 'wishlist_save.login_required' | t }}</p>
+      <div class="konvert-wishlist__actions">
+        <button class="konvert-wishlist__continue" type="button" data-continue>
+          {{ 'wishlist_save.continue_login' | t }}
+        </button>
+        <button class="konvert-wishlist__cancel" type="button" data-cancel>
+          {{ 'wishlist_save.cancel' | t }}
+        </button>
+      </div>
+    </div>
+  </dialog>
+</div>
+
+{{ 'wishlist-save.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'storefront-settings.js' | asset_url }}" defer></script>
+<script type="module" src="{{ 'wishlist-save.js' | asset_url }}"></script>
+
+{% schema %}
+{
+  "name": "t:wishlist_save.name",
+  "target": "section",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:wishlist_save.settings.button_label",
+      "default": "Save to Wishlist"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "t:wishlist_save.settings.accent_color",
+      "default": "#1F2937"
+    }
+  ]
+}
+{% endschema %}
